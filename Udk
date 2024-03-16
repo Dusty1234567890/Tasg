@@ -1,0 +1,44 @@
+-- Define a global flag to control the teleportation loop
+_G.test = false
+
+-- Function to check if the player is in the labyrinth and teleport them
+local function checkInLabyrinth()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local inLabyrinth = character:FindFirstChild("InLabyrinth")
+    
+    -- Only proceed if the player is in the labyrinth
+    if inLabyrinth then
+        -- Iterate through all descendants of workspace to find the labyrinth doors
+        for _, descendant in pairs(workspace:GetDescendants()) do
+            if string.find(descendant.Name, "Labyrinth") and descendant:FindFirstChild("Doors") then
+                local doors = descendant.Doors
+                for _, door in ipairs(doors:GetChildren()) do
+                    if door:FindFirstChild("Hitbox") and door.Hitbox:FindFirstChild("TouchInterest") then
+                        -- Teleport the player to the hitbox's position
+                        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+                        if humanoidRootPart then
+                            humanoidRootPart.CFrame = door.Hitbox.CFrame
+                            return -- Exit the function after teleporting the player
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Main loop to continuously check the condition
+while wait() do
+    if _G.test == true then
+        checkInLabyrinth()
+    end
+end
+
+-- Connect the checkInLabyrinth function to the CharacterAdded event
+game.Players.LocalPlayer.CharacterAdded:Connect(checkInLabyrinth)
+
+-- Initial check in case the character is already present
+if game.Players.LocalPlayer.Character then
+    checkInLabyrinth()
+end
